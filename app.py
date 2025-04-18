@@ -27,8 +27,12 @@ text_splitter = RecursiveCharacterTextSplitter(
 text = extract_text_from_pdf("Ali's part.pdf") # Store the extracted text in a variable
 chunks = text_splitter.split_text(text)
 
-model = SentenceTransformer("all-MiniLM-L6-v2")  # Lightweight and popular
-embeddings = model.encode(chunks, show_progress_bar=True)
+# This saves the model locally and runs it offline
+# Uncomment the following two lines and comment the next line when running for the first time
+# model = SentenceTransformer("all-MiniLM-L6-v2")  # Lightweight and popular
+# model.save("./all-MiniLM-L6-v2")
+model = SentenceTransformer("./all-MiniLM-L6-v2")
+embeddings = model.encode(chunks)
 
 
 # For printing the embeddings of each chunk
