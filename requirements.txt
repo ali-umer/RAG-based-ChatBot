@@ -3,4 +3,4 @@ langchain
 sentence-transformers
 faiss-cpu
 numpy
-pickle
+requests
