@@ -1,5 +1,6 @@
 import fitz  # New name for PyMuPDF
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from sentence_transformers import SentenceTransformer
 
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
@@ -26,10 +27,16 @@ text_splitter = RecursiveCharacterTextSplitter(
 text = extract_text_from_pdf("Ali's part.pdf") # Store the extracted text in a variable
 chunks = text_splitter.split_text(text)
 
+model = SentenceTransformer("all-MiniLM-L6-v2")  # Lightweight and popular
+embeddings = model.encode(chunks, show_progress_bar=True)
 
-print(f"Total chunks created: {len(chunks)}")
 
-for i in chunks:
-    print(i)
-    print("\n-------------------------------------------------------\n")
+# For printing the embeddings of each chunk
+# for i, embedding in enumerate(embeddings):
+#     print(f"Embedding for chunk {i}: {embedding}")
+
+# For printing the chunks
+# for i in chunks:
+#     print(i)
+#     print("\n-------------------------------------------------------\n")
 
