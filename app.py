@@ -1,7 +1,12 @@
 import fitz  # New name for PyMuPDF
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+import pickle
 
+INDEX_FILE = "faiss.index"
+CHUNKS_FILE = "chunks.pkl"
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
     text = ""
@@ -34,13 +39,14 @@ chunks = text_splitter.split_text(text)
 model = SentenceTransformer("./all-MiniLM-L6-v2")
 embeddings = model.encode(chunks)
 
+embedding_matrix = np.array(embeddings).astype("float32")
 
-# For printing the embeddings of each chunk
-# for i, embedding in enumerate(embeddings):
-#     print(f"Embedding for chunk {i}: {embedding}")
+dimension = embedding_matrix.shape[1]
+index = faiss.IndexFlatL2(dimension)
 
-# For printing the chunks
-# for i in chunks:
-#     print(i)
-#     print("\n-------------------------------------------------------\n")
+# Add embeddings
+index.add(embedding_matrix)
 
+faiss.write_index(index, INDEX_FILE)
+with open(CHUNKS_FILE, "wb") as f:
+    pickle.dump(chunks, f)
