@@ -9,16 +9,14 @@ index = faiss.read_index("faiss.index")
 with open("chunks.pkl", "rb") as f:
     chunks = pickle.load(f)
 
-# Load sentence transformer model (offline)
 model = SentenceTransformer("./all-MiniLM-L6-v2")
 
-# Get user question
 query = input("Ask a question about the university prospectus:\n> ")
 
 # Encode the query
 query_embedding = model.encode([query]).astype("float32")
 
-# Search FAISS for relevant chunks
+# Search vector space for relevant chunks
 k = 3
 _, indices = index.search(query_embedding, k)
 top_chunks = [chunks[i] for i in indices[0]]
