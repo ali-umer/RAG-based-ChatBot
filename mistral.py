@@ -1,32 +1,36 @@
+from flask import Flask, request, Response,render_template
 import faiss
 import pickle
 import numpy as np
 import json
 from sentence_transformers import SentenceTransformer
 import requests
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-# Load FAISS index and chunks
+app = Flask(__name__, static_folder='static', template_folder='templates')
+CORS(app)
+
+# Load everything once at startup
 index = faiss.read_index("output_data/faiss.index")
 with open("output_data/chunks.pkl", "rb") as f:
     chunks = pickle.load(f)
 
 model = SentenceTransformer("./all-MiniLM-L6-v2")
 
-query = input("Ask a question about the university prospectus:\n> ")
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-# Encode the query
-query_embedding = model.encode([query]).astype("float32")
 
-# Search vector space for relevant chunks
-k = 3
-_, indices = index.search(query_embedding, k)
-top_chunks = [chunks[i] for i in indices[0]]
+# Generator to stream Mistral response
+def generate_response(query):
+    query_embedding = model.encode([query]).astype("float32")
+    _, indices = index.search(query_embedding, 3)
+    top_chunks = [chunks[i] for i in indices[0]]
+    context = "\n\n".join(top_chunks)
 
-# Combine retrieved chunks into a single context
-context = "\n\n".join(top_chunks)
-
-# Construct prompt for Mistral
-prompt = f"""You are a helpful assistant answering questions based on the university prospectus. Use the context to answer the question.
+    prompt = f"""You are a helpful assistant answering questions based on the university prospectus. Use the context to answer the question.
 
 Context:
 {context}
@@ -36,26 +40,34 @@ Question:
 
 Answer:"""
 
-# Stream response from Mistral (Ollama)
-print("\n🧠 Mistral's Answer:\n")
+    # Stream response from Mistral
+    response = requests.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "mistral:7b-instruct-q4_0",
+            "prompt": prompt,
+            "stream": True
+        },
+        stream=True
+    )
 
+    for line in response.iter_lines():
+        if line:
+            try:
+                data = json.loads(line.decode("utf-8"))
+                if "response" in data:
+                    yield data["response"]  # You can add \n if needed
+            except Exception:
+                continue
 
-response = requests.post(
-    "http://localhost:11434/api/generate",
-    json={
-        "model": "mistral",
-        "prompt": prompt,
-        "stream": True
-    },
-    stream=True
-)
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    query = data.get("query", "")
+    if not query:
+        return {"error": "Query is required"}, 400
 
-# Print each token as it arrives
-for line in response.iter_lines():
-    if line:
-        try:
-            data = json.loads(line.decode("utf-8"))
-            if "response" in data:
-                print(data["response"], end="", flush=True)
-        except Exception as e:
-            pass
+    return Response(generate_response(query), mimetype="text/plain", headers={"X-Accel-Buffering": "no"})
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
