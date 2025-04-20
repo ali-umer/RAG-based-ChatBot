@@ -1,6 +1,7 @@
 import faiss
 import pickle
 import numpy as np
+import json
 from sentence_transformers import SentenceTransformer
 import requests
 
@@ -35,16 +36,26 @@ Question:
 
 Answer:"""
 
-# Send prompt to Mistral (Ollama)
+# Stream response from Mistral (Ollama)
+print("\n🧠 Mistral's Answer:\n")
+
+
 response = requests.post(
     "http://localhost:11434/api/generate",
     json={
         "model": "mistral",
         "prompt": prompt,
-        "stream": False
-    }
+        "stream": True
+    },
+    stream=True
 )
 
-# Show the response
-print("\n🧠 Mistral's Answer:\n")
-print(response.json()["response"])
+# Print each token as it arrives
+for line in response.iter_lines():
+    if line:
+        try:
+            data = json.loads(line.decode("utf-8"))
+            if "response" in data:
+                print(data["response"], end="", flush=True)
+        except Exception as e:
+            pass  # Optional: log or print error for debugging
