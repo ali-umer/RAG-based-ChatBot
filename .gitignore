@@ -1,6 +1,5 @@
 .DS_Store
 .venv/
 all-MiniLM-L6-v2/
-Ali's part.pdf
-chunks.pkl
-faiss.index
+output_data/
+input_data/
