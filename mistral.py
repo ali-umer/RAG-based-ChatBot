@@ -6,8 +6,8 @@ from sentence_transformers import SentenceTransformer
 import requests
 
 # Load FAISS index and chunks
-index = faiss.read_index("faiss.index")
-with open("chunks.pkl", "rb") as f:
+index = faiss.read_index("output_data/faiss.index")
+with open("output_data/chunks.pkl", "rb") as f:
     chunks = pickle.load(f)
 
 model = SentenceTransformer("./all-MiniLM-L6-v2")
@@ -58,4 +58,4 @@ for line in response.iter_lines():
             if "response" in data:
                 print(data["response"], end="", flush=True)
         except Exception as e:
-            pass  # Optional: log or print error for debugging
+            pass

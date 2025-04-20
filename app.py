@@ -5,9 +5,9 @@ import faiss
 import numpy as np
 import pickle
 
-INDEX_FILE = "faiss.index"
-CHUNKS_FILE = "chunks.pkl"
-PDF_FILE = "Ali's part.pdf"
+INDEX_FILE = "output_data/faiss.index"
+CHUNKS_FILE = "output_data/chunks.pkl"
+PDF_FILE = "input_data/Ali's part.pdf"
 
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
