@@ -1,42 +1,73 @@
-import fitz  # New name for PyMuPDF
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from sentence_transformers import SentenceTransformer
+from flask import Flask, request, Response,render_template
 import faiss
-import numpy as np
 import pickle
+import numpy as np
+import json
+from sentence_transformers import SentenceTransformer
+import requests
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-INDEX_FILE = "output_data/faiss.index"
-CHUNKS_FILE = "output_data/chunks.pkl"
-PDF_FILE = "input_data/Ali's part.pdf"
+app = Flask(__name__, static_folder='static', template_folder='templates')
+CORS(app)
 
-def extract_text_from_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    return text
+# Load everything once at startup
+index = faiss.read_index("output_data/faiss.index")
+with open("output_data/chunks.pkl", "rb") as f:
+    chunks = pickle.load(f)
 
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200
-)
-text = extract_text_from_pdf(PDF_FILE) # Store the extracted text in a variable
-chunks = text_splitter.split_text(text)
-
-# Uncomment the following two lines and comment third one when running for first time, this saves the model locally
-# model = SentenceTransformer("all-MiniLM-L6-v2")  # Lightweight and popular
-# model.save("./all-MiniLM-L6-v2")
 model = SentenceTransformer("./all-MiniLM-L6-v2")
-embeddings = model.encode(chunks)
 
-embedding_matrix = np.array(embeddings).astype("float32")
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-dimension = embedding_matrix.shape[1]
-index = faiss.IndexFlatL2(dimension)
 
-# Add embeddings
-index.add(embedding_matrix)
+# Generator to stream Mistral response
+def generate_response(query):
+    query_embedding = model.encode([query]).astype("float32")
+    _, indices = index.search(query_embedding, 3)
+    top_chunks = [chunks[i] for i in indices[0]]
+    context = "\n\n".join(top_chunks)
 
-faiss.write_index(index, INDEX_FILE)
-with open(CHUNKS_FILE, "wb") as f:
-    pickle.dump(chunks, f)
+    prompt = f"""You are a helpful assistant answering questions based on the university prospectus. Use the context to answer the question.
+
+Context:
+{context}
+
+Question:
+{query}
+
+Answer:"""
+
+    # Stream response from Mistral
+    response = requests.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "mistral:7b-instruct-q4_0",
+            "prompt": prompt,
+            "stream": True
+        },
+        stream=True
+    )
+
+    for line in response.iter_lines():
+        if line:
+            try:
+                data = json.loads(line.decode("utf-8"))
+                if "response" in data:
+                    yield data["response"]  # You can add \n if needed
+            except Exception:
+                continue
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    query = data.get("query", "")
+    if not query:
+        return {"error": "Query is required"}, 400
+
+    return Response(generate_response(query), mimetype="text/plain", headers={"X-Accel-Buffering": "no"})
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
