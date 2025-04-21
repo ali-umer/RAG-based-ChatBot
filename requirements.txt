@@ -1,1 +1,8 @@
 pymupdf
+langchain
+sentence-transformers
+faiss-cpu
+numpy
+requests
+flask
+flask-cors

@@ -1,2 +1,5 @@
 .DS_Store
 .venv/
+all-MiniLM-L6-v2/
+output_data/
+input_data/
