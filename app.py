@@ -30,7 +30,7 @@ def generate_response(query):
     top_chunks = [chunks[i] for i in indices[0]]
     context = "\n\n".join(top_chunks)
 
-    prompt = f"""You are a helpful assistant answering questions based on the university prospectus. Use the context to answer the question.
+    prompt = f"""You are a helpful university assistant. If the user greets you or makes small talk, respond conversationally. Otherwise, use the university prospectus context to answer their question.
 
 Context:
 {context}
@@ -56,7 +56,7 @@ Answer:"""
             try:
                 data = json.loads(line.decode("utf-8"))
                 if "response" in data:
-                    yield data["response"]  # You can add \n if needed
+                    yield data["response"]
             except Exception:
                 continue
 
