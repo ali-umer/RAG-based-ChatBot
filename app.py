@@ -56,7 +56,7 @@ Answer:"""
             try:
                 data = json.loads(line.decode("utf-8"))
                 if "response" in data:
-                    yield data["response"]  # You can add \n if needed
+                    yield data["response"]
             except Exception:
                 continue
 
