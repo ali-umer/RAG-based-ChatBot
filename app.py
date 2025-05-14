@@ -8,7 +8,7 @@ import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
 CORS(app)
 
 # Load everything once at startup
@@ -17,10 +17,6 @@ with open("output_data/chunks.pkl", "rb") as f:
     chunks = pickle.load(f)
 
 model = SentenceTransformer("./all-MiniLM-L6-v2")
-
-@app.route("/")
-def home():
-    return render_template("index.html")
 
 
 # Generator to stream Mistral response
@@ -70,4 +66,4 @@ def ask():
     return Response(generate_response(query), mimetype="text/plain", headers={"X-Accel-Buffering": "no"})
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(host="0.0.0.0", port=5050, debug=True)
