@@ -37,6 +37,7 @@ Question:
 Answer:"""
 
     # Stream response from Mistral
+    #Ollama's default port is 11434
     response = requests.post(
         "http://localhost:11434/api/generate",
         json={
