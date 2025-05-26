@@ -1,6 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 
+// TypingDots animation component
+function TypingDots() {
+  return (
+    <span className="flex space-x-1 animate-pulse">
+      <span>.</span>
+      <span className="animate-delay-200">.</span>
+      <span className="animate-delay-400">.</span>
+    </span>
+  );
+}
+
 export default function Chatbot() {
   const [messages, setMessages] = useState([
     { sender: "bot", text: "Hello. How can I help you today?" },
@@ -12,26 +23,59 @@ export default function Chatbot() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    setMessages((prev) => [...prev, { sender: "user", text: input }]);
-    simulateBotResponse(input);
-    setInput("");
-  };
+    const userMessage = { sender: "user", text: input };
+    const typingPlaceholder = { sender: "bot", text: <TypingDots /> };
 
-  const simulateBotResponse = (text) => {
-    setTimeout(() => {
-      const reply = `You said: "${text}"`;
-      setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
-    }, 800);
+    setMessages((prev) => [...prev, userMessage, typingPlaceholder]);
+    setInput("");
+
+    try {
+      const res = await fetch("http://localhost:5050/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: input }),
+      });
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let botReply = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        botReply += chunk;
+
+        // Replace the last bot message (typing) with updated response
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            sender: "bot",
+            text: botReply,
+          };
+          return updated;
+        });
+      }
+    } catch (err) {
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          sender: "bot",
+          text: "⚠️ Failed to get response from model.",
+        };
+        return updated;
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#1e1f22] flex items-center justify-center p-4">
       <div className="w-full max-w-3xl h-[80vh] bg-[#2b2d31] rounded-xl shadow-lg flex flex-col overflow-hidden border border-[#3a3b3e]">
         <div className="px-6 py-4 border-b border-[#3a3b3e]">
-          <h1 className="text-white text-xl font-medium">AI Chat Assistant</h1>
+          <h1 className="text-white text-2xl font-bold tracking-wide drop-shadow-sm">AI Chat Assistant</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
