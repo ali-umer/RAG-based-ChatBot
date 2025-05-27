@@ -23,6 +23,7 @@ export default function Chatbot() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -72,7 +73,8 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1e1f22] flex items-center justify-center p-4">
+    <body className="overflow-hidden overscroll-none"> 
+<div className="min-h-[100dvh] bg-[#1e1f22] flex items-center justify-center p-4">
       <div className="w-full max-w-3xl h-[80vh] bg-[#2b2d31] rounded-xl shadow-lg flex flex-col overflow-hidden border border-[#3a3b3e]">
         <div className="px-6 py-4 border-b border-[#3a3b3e]">
           <h1 className="text-white text-2xl font-bold tracking-wide drop-shadow-sm">AI Chat Assistant</h1>
@@ -118,5 +120,6 @@ export default function Chatbot() {
         </div>
       </div>
     </div>
+    </body>
   );
 }

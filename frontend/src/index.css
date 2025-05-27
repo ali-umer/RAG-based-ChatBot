@@ -1,13 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden; /* Disables scrolling */
-  overscroll-behavior: none; /* Prevents drag/scroll bounce on mobile */
-  touch-action: none; /* Optional: disables gestures like pinch/drag */
-  background-color: #1e1f22; /* Fallback background */
-}
