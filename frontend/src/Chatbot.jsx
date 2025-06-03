@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 
-// TypingDots animation component
+
 function TypingDots() {
   return (
     <span className="flex space-x-1 animate-pulse">
@@ -77,7 +77,7 @@ export default function Chatbot() {
 <div className="min-h-[100dvh] bg-[#1e1f22] flex items-center justify-center p-4">
       <div className="w-full max-w-3xl h-[80vh] bg-[#2b2d31] rounded-xl shadow-lg flex flex-col overflow-hidden border border-[#3a3b3e]">
         <div className="px-6 py-4 border-b border-[#3a3b3e]">
-          <h1 className="text-white text-2xl font-bold tracking-wide drop-shadow-sm">AI Chat Assistant</h1>
+          <h1 className="text-white text-2xl font-bold tracking-wide drop-shadow-sm">FAST Nuces AI Chat Assistant</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
