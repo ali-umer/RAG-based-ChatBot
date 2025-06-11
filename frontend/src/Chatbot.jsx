@@ -34,7 +34,7 @@ export default function Chatbot() {
     setInput("");
 
     try {
-      const res = await fetch("https://21b8-203-99-61-238.ngrok-free.app/ask", {
+      const res = await fetch("https://373e-203-99-61-238.ngrok-free.app/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: input }),
