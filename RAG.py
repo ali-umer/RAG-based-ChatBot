@@ -7,7 +7,7 @@ import pickle
 
 INDEX_FILE = "output_data/faiss.index"
 CHUNKS_FILE = "output_data/chunks.pkl"
-PDF_FILE = "input_data/Academic-Rules-2023.pdf"
+PDF_FILE = "input_data/Prospectus 2024.pdf"
 
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
