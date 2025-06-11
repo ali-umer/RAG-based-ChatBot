@@ -71,6 +71,7 @@ export default function Chatbot() {
       });
     }
   };
+  
 
   return (
     <div className="overflow-hidden overscroll-none">
